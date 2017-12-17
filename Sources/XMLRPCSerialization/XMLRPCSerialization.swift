@@ -76,12 +76,12 @@ open class XMLRPCSerialization {
         let paramsElement = XMLElement(name: "params")
         let rootElement = XMLElement(name: "methodCall", wrapping: [nameElement, paramsElement])
         
-        try paramsElement.insertChildren(obj.params.map {
+        for param in obj.params {
             let encoder = XMLRPCParamEncoder().directEncoder
-
-            try $0.encode(to: encoder)
-            return encoder.output
-        }, at: 0)
+            
+            try param.encode(to: encoder)
+            paramsElement.addChild(encoder.output)
+        }
 
         let doc = XMLDocument(rootElement: rootElement)
         var options: XMLDocument.Options = []
