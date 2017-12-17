@@ -9,9 +9,7 @@ import Foundation
 
 extension XMLElement {
     convenience init(name: String, content: String) {
-        let textNode = XMLNode(kind: .text)
-        textNode.stringValue = content
-        self.init(name: name, wrapping: textNode)
+        self.init(name: name, wrapping: XMLNode.text(withStringValue: content) as! XMLNode)
     }
     
     convenience init(name: String, wrapping: XMLNode) {
