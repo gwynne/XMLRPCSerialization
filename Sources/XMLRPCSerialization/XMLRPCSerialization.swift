@@ -72,12 +72,10 @@ open class XMLRPCSerialization {
     
     /// Generate serialized `Data` from an XMLRPCRequest object.
     open class func data(withXmlrpcObject obj: XMLRPCRequest, encoding enc: String.Encoding = .utf8, options opt: WritingOptions = []) throws -> Data {
-        let doc = XMLDocument()
         let nameElement = XMLElement(name: "methodName", content: obj.methodName)
         let paramsElement = XMLElement(name: "params")
         let rootElement = XMLElement(name: "methodCall", wrapping: [nameElement, paramsElement])
         
-        doc.setRootElement(rootElement)
         try paramsElement.insertChildren(obj.params.map {
             let encoder = XMLRPCParamEncoder().directEncoder
 
@@ -85,6 +83,7 @@ open class XMLRPCSerialization {
             return encoder.output
         }, at: 0)
 
+        let doc = XMLDocument(rootElement: rootElement)
         var options: XMLDocument.Options = []
         if opt.contains(.prettyPrint) {
             options.update(with: .nodePrettyPrint)
