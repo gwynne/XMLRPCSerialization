@@ -83,12 +83,11 @@ open class XMLRPCSerialization {
             paramsElement.addChild(encoder.output)
         }
 
-        let doc = XMLDocument(rootElement: rootElement)
-        var options: XMLDocument.Options = []
+        var options: XMLNode.Options = []
         if opt.contains(.prettyPrint) {
             options.update(with: .nodePrettyPrint)
         }
-        guard let data = doc.xmlString(options: options).data(using: enc) else {
+        guard let data = rootElement.xmlString(options: options).data(using: enc) else {
             throw SerializationError.encodingError
         }
         return data
