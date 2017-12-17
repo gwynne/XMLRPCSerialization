@@ -10,10 +10,19 @@ import Foundation
 public struct XMLRPCRequest {
     public let methodName: String
     public let params: [Any]
+    
+    public init(methodName: String, params: [Any]) {
+        self.methodName = methodName
+        self.params = params
+    }
 }
 
 public struct XMLRPCResponse {
     public let params: [Any]
+    
+    public init(params: [Any]) {
+        self.params = params
+    }
 }
 
 open class XMLRPCSerialization {
