@@ -64,10 +64,7 @@ open class XMLRPCSerialization {
         }
         guard
             let methodNameElement = root.elements(forName: "methodName").first,
-            methodNameElement.childCount == 1,
-            let methodNameText = methodNameElement.child(at: 0),
-            case .text = methodNameText.kind,
-            let method = methodNameText.stringValue
+            let method = methodNameElement.stringValue
         else {
             throw SerializationError.noMethodNameElement
         }
