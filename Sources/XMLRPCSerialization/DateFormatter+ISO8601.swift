@@ -12,6 +12,7 @@ extension DateFormatter {
         let f = DateFormatter()
         f.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZZZZZ"
         f.locale = Locale(identifier: "en_US_POSIX")
+        f.timeZone = TimeZone(secondsFromGMT: 0)!
         return f
     }
 }
