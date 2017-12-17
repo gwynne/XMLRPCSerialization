@@ -70,8 +70,10 @@ open class XMLRPCSerialization {
         throw SerializationError.unimplemented
     }
     
-    /// Generate serialized `Data` from an XMLRPCRequest object.
-    open class func data(withXmlrpcObject obj: XMLRPCRequest, encoding enc: String.Encoding = .utf8, options opt: WritingOptions = []) throws -> Data {
+    /// Generate a serialized XML string from an XMLRPCRequest object.
+    /// Does not generate `Data` because there's no good way to convert a
+    /// `String.Encoding` to its equivalent display name in an XML declaration.
+    open class func string(withXmlrpcObject obj: XMLRPCRequest, options opt: WritingOptions = []) throws -> String {
         let nameElement = XMLElement(name: "methodName", content: obj.methodName)
         let paramsElement = XMLElement(name: "params")
         let rootElement = XMLElement(name: "methodCall", wrapping: [nameElement, paramsElement])
@@ -87,10 +89,7 @@ open class XMLRPCSerialization {
         if opt.contains(.prettyPrint) {
             options.update(with: .nodePrettyPrint)
         }
-        guard let data = rootElement.xmlString(options: options).data(using: enc) else {
-            throw SerializationError.encodingError
-        }
-        return data
+        return rootElement.xmlString(options: options)
     }
 }
 
