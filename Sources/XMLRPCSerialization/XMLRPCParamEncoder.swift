@@ -18,7 +18,7 @@ open class XMLRPCParamEncoder {
         return wrapper
     }
     
-    private func encodeValue(_ value: Any) throws -> XMLElement {
+    internal func encodeValue(_ value: Any) throws -> XMLElement {
         let wrapper = XMLElement(name: "value")
         
         wrapper.addChild(try encodeType(value))

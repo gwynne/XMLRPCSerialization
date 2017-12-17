@@ -21,7 +21,7 @@ open class XMLRPCParamDecoder {
         return try decodeValue(childElement)
     }
     
-    private func decodeValue(_ element: XMLElement) throws -> Any {
+    internal func decodeValue(_ element: XMLElement) throws -> Any {
         guard let name = element.name, name == "value" else {
             throw XMLRPCSerialization.SerializationError.noValueElement
         }
