@@ -9,38 +9,85 @@ import Foundation
 
 open class XMLRPCParamEncoder {
     
-    open var userInfo: [CodingUserInfoKey: Any] = [:]
-    
     public init() {}
     
-    open func encode<T>(_ value: T) throws -> XMLElement where T: Encodable {
-        let encoder = _XMLRPCParamEncoder(userInfo: userInfo)
+    open func encode(_ value: Any) throws -> XMLElement {
         let wrapper = XMLElement(name: "param")
         
-        try value.encode(to: encoder)
-        wrapper.addChild(encoder.result)
+        wrapper.addChild(try encodeValue(value))
         return wrapper
     }
     
-    open var directEncoder: XMLRPCParamDirectEncoder {
-        return _XMLRPCParamEncoder(userInfo: self.userInfo)
+    private func encodeValue(_ value: Any) throws -> XMLElement {
+        let wrapper = XMLElement(name: "value")
+        
+        wrapper.addChild(try encodeType(value))
+        return wrapper
+    }
+    
+    private func encodeType(_ value: Any) throws -> XMLElement {
+        if let value = value as? String {
+            return XMLElement(name: "string", content: value)
+        } else if let value = value as? Int {
+            return XMLElement(name: "i4", content: String(value))
+        } else if let value = value as? Int8 {
+            return XMLElement(name: "i4", content: String(value))
+        } else if let value = value as? Int16 {
+            return XMLElement(name: "i4", content: String(value))
+        } else if let value = value as? Int32 {
+            return XMLElement(name: "i4", content: String(value))
+        } else if let value = value as? Int64 {
+            return XMLElement(name: "i4", content: String(value))
+        } else if let value = value as? UInt {
+            return XMLElement(name: "i4", content: String(value))
+        } else if let value = value as? UInt8 {
+            return XMLElement(name: "i4", content: String(value))
+        } else if let value = value as? UInt16 {
+            return XMLElement(name: "i4", content: String(value))
+        } else if let value = value as? UInt32 {
+            return XMLElement(name: "i4", content: String(value))
+        } else if let value = value as? UInt64 {
+            return XMLElement(name: "i4", content: String(value))
+        } else if let value = value as? Float {
+            return XMLElement(name: "double", content: String(value))
+        } else if let value = value as? Double {
+            return XMLElement(name: "double", content: String(value))
+        } else if let value = value as? Bool {
+            return XMLElement(name: "boolean", content: value ? "1" : "0")
+        } else if let value = value as? Date {
+            return XMLElement(name: "dateTime.iso8601", content: sharedIso8601Formatter.string(from: value))
+        } else if let value = value as? Data {
+            return XMLElement(name: "base64", content: value.base64EncodedString(options: []))
+        } else if let value = value as? [(String, Any)] {
+            let wrapper = XMLElement(name: "struct")
+            for (key, subvalue) in value {
+                wrapper.addChild(XMLElement(name: "member", wrapping: [XMLElement(name: "name", content: key), try encodeValue(subvalue)]))
+            }
+            return wrapper
+        } else if let value = value as? [String: Any] {
+            let wrapper = XMLElement(name: "struct")
+            for (key, subvalue) in value {
+                wrapper.addChild(XMLElement(name: "member", wrapping: [XMLElement(name: "name", content: key), try encodeValue(subvalue)]))
+            }
+            return wrapper
+        } else if let value = value as? [Any] {
+            let wrapper = XMLElement(name: "data")
+            let wideWrapper = XMLElement(name: "array", wrapping: [wrapper])
+            for subvalue in value {
+                wrapper.addChild(try encodeValue(subvalue))
+            }
+            return wideWrapper
+        } else {
+            throw XMLRPCSerialization.SerializationError.unknownType
+        }
     }
 }
+
+/*
 
 public protocol XMLRPCParamDirectEncoder: Encoder {
     var output: XMLElement { get }
 }
-
-extension DateFormatter {
-    public static var iso8601DateFormatter: DateFormatter {
-        let f = DateFormatter()
-        f.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZZZZZ"
-        f.locale = Locale(identifier: "en_US_POSIX")
-        return f
-    }
-}
-
-private var formatter = DateFormatter.iso8601DateFormatter
 
 extension Array where Element == CodingKey {
     var printable: String { return self.map { $0.stringValue }.joined(separator: ".") }
@@ -139,7 +186,7 @@ fileprivate class _XMLRPCParamKeyedEncodingContainer<K: CodingKey>: KeyedEncodin
             if let value = value as? Data {
                 valueWrapper = XMLElement(name: "value", wrapping: XMLElement(name: "base64", content: value.base64EncodedString()))
             } else if let value = value as? Date {
-                valueWrapper = XMLElement(name: "value", wrapping: XMLElement(name: "dateTime.iso8601", content: formatter.string(from: value)))
+                valueWrapper = XMLElement(name: "value", wrapping: XMLElement(name: "dateTime.iso8601", content: sharedIso8601Formatter.string(from: value)))
             } else {
                 let subencoder = _XMLRPCParamEncoder(userInfo: encoder.userInfo, codingPath: encoder.codingPath)
                 
@@ -199,7 +246,7 @@ fileprivate class _XMLRPCParamUnkeyedEncodingContainer: UnkeyedEncodingContainer
         if let value = value as? Data {
             valueWrapper = XMLElement(name: "value", wrapping: XMLElement(name: "base64", content: value.base64EncodedString()))
         } else if let value = value as? Date {
-            valueWrapper = XMLElement(name: "value", wrapping: XMLElement(name: "dateTime.iso8601", content: formatter.string(from: value)))
+            valueWrapper = XMLElement(name: "value", wrapping: XMLElement(name: "dateTime.iso8601", content: sharedIso8601Formatter.string(from: value)))
         } else {
             let subencoder = _XMLRPCParamEncoder(userInfo: encoder.userInfo, codingPath: encoder.codingPath)
             try value.encode(to: subencoder)
@@ -284,7 +331,7 @@ fileprivate class _XMLRPCParamSingleValueEncodingContainer: SingleValueEncodingC
         if let value = value as? Data {
             storage.addChild(XMLElement(name: "base64", content: value.base64EncodedString()))
         } else if let value = value as? Date {
-            storage.addChild(XMLElement(name: "dateTime.iso8601", content: formatter.string(from: value)))
+            storage.addChild(XMLElement(name: "dateTime.iso8601", content: sharedIso8601Formatter.string(from: value)))
         } else {
             let subencoder = _XMLRPCParamEncoder(userInfo: encoder.userInfo, codingPath: encoder.codingPath)
             try value.encode(to: subencoder)
@@ -294,3 +341,4 @@ fileprivate class _XMLRPCParamSingleValueEncodingContainer: SingleValueEncodingC
         }
     }
 }
+*/

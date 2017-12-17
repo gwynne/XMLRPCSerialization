@@ -9,7 +9,11 @@ import Foundation
 
 public struct XMLRPCRequest {
     public let methodName: String
-    public let params: [Codable]
+    public let params: [Any]
+}
+
+public struct XMLRPCResponse {
+    public let params: [Any]
 }
 
 open class XMLRPCSerialization {
@@ -29,8 +33,19 @@ open class XMLRPCSerialization {
     public enum SerializationError: Error {
         case noRootElement
         case rootNotMethodCall
+        case rootNotMethodResponse
         case noMethodNameElement
         case noParamsElement
+        case noValueElement
+        case badValueChildren
+        case invalidIntValue
+        case invalidDateValue
+        case invalidBase64Value
+        case invalidDoubleValue
+        case invalidBooleanValue
+        case badMemberElement
+        case unknownType
+        case badDataElement
         
         case unencodableParam
         case encodingError
@@ -39,50 +54,88 @@ open class XMLRPCSerialization {
     }
     
     /// Parse an object from `Data` containing an XMLRPC request.
-    ///
-    /// - Note: This parsing logic is very lax - it does not validate that the
-    /// XML structure is fully correct, just that the necessary elements are
-    /// present in readable fashion.
-    open class func xmlrpcObject(with data: Data, options opt: ReadingOptions = []) throws -> XMLRPCRequest {
-//        let doc = try XMLDocument(data: data, options: .nodeLoadExternalEntitiesNever)
-//        guard let root = doc.rootElement() else {
-//            throw SerializationError.noRootElement
-//        }
-//        guard let name = root.name, name == "methodCall" else {
-//            throw SerializationError.rootNotMethodCall
-//        }
-//        guard
-//            let methodNameElement = root.elements(forName: "methodName").first,
-//            methodNameElement.childCount == 1,
-//            let methodNameText = methodNameElement.child(at: 0),
-//            case .text = methodNameText.kind,
-//            let method = methodNameText.stringValue
-//        else {
-//            throw SerializationError.noMethodNameElement
-//        }
-//
-//        guard let paramsElement = root.elements(forName: "params").first else {
-//            throw SerializationError.noParamsElement
-//        }
-//        for paramElement in paramsElement.elements(forName: "param") {
-//
-//        }
-        throw SerializationError.unimplemented
+    open class func xmlrpcRequest(from data: Data, options opt: ReadingOptions = []) throws -> XMLRPCRequest {
+        let doc = try XMLDocument(data: data, options: .nodeLoadExternalEntitiesNever)
+        guard let root = doc.rootElement() else {
+            throw SerializationError.noRootElement
+        }
+        guard let name = root.name, name == "methodCall" else {
+            throw SerializationError.rootNotMethodCall
+        }
+        guard
+            let methodNameElement = root.elements(forName: "methodName").first,
+            methodNameElement.childCount == 1,
+            let methodNameText = methodNameElement.child(at: 0),
+            case .text = methodNameText.kind,
+            let method = methodNameText.stringValue
+        else {
+            throw SerializationError.noMethodNameElement
+        }
+        
+        var params: [Any] = []
+        let decoder = XMLRPCParamDecoder()
+        
+        guard let paramsElement = root.elements(forName: "params").first else {
+            throw SerializationError.noParamsElement
+        }
+        for paramElement in paramsElement.elements(forName: "param") {
+            params.append(try decoder.decode(from: paramElement))
+        }
+        return XMLRPCRequest(methodName: method, params: params)
+    }
+    
+    /// Parse an object from `Data` containing an XMLRPC response.
+    open class func xmlrpcResponse(from data: Data, options opt: ReadingOptions = []) throws -> XMLRPCResponse {
+        let doc = try XMLDocument(data: data, options: .nodeLoadExternalEntitiesNever)
+        guard let root = doc.rootElement() else {
+            throw SerializationError.noRootElement
+        }
+        guard let name = root.name, name == "methodResponse" else {
+            throw SerializationError.rootNotMethodResponse
+        }
+
+        var params: [Any] = []
+        let decoder = XMLRPCParamDecoder()
+        
+        guard let paramsElement = root.elements(forName: "params").first else {
+            throw SerializationError.noParamsElement
+        }
+        for paramElement in paramsElement.elements(forName: "param") {
+            params.append(try decoder.decode(from: paramElement))
+        }
+        return XMLRPCResponse(params: params)
     }
     
     /// Generate a serialized XML string from an XMLRPCRequest object.
     /// Does not generate `Data` because there's no good way to convert a
     /// `String.Encoding` to its equivalent display name in an XML declaration.
-    open class func string(withXmlrpcObject obj: XMLRPCRequest, options opt: WritingOptions = []) throws -> String {
+    open class func string(withXmlrpcRequest obj: XMLRPCRequest, options opt: WritingOptions = []) throws -> String {
         let nameElement = XMLElement(name: "methodName", content: obj.methodName)
         let paramsElement = XMLElement(name: "params")
         let rootElement = XMLElement(name: "methodCall", wrapping: [nameElement, paramsElement])
+        let encoder = XMLRPCParamEncoder()
         
         for param in obj.params {
-            let encoder = XMLRPCParamEncoder().directEncoder
-            
-            try param.encode(to: encoder)
-            paramsElement.addChild(encoder.output)
+            paramsElement.addChild(try encoder.encode(param))
+        }
+
+        var options: XMLNode.Options = []
+        if opt.contains(.prettyPrint) {
+            options.update(with: .nodePrettyPrint)
+        }
+        return rootElement.xmlString(options: options)
+    }
+
+    /// Generate a serialized XML string from an XMLRPCResponse object.
+    /// Does not generate `Data` because there's no good way to convert a
+    /// `String.Encoding` to its equivalent display name in an XML declaration.
+    open class func string(withXmlrpcResponse obj: XMLRPCResponse, options opt: WritingOptions = []) throws -> String {
+        let paramsElement = XMLElement(name: "params")
+        let rootElement = XMLElement(name: "methodResponse", wrapping: [paramsElement])
+        let encoder = XMLRPCParamEncoder()
+
+        for param in obj.params {
+            paramsElement.addChild(try encoder.encode(param))
         }
 
         var options: XMLNode.Options = []
@@ -92,4 +145,3 @@ open class XMLRPCSerialization {
         return rootElement.xmlString(options: options)
     }
 }
-
