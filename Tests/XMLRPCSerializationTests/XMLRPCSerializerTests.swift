@@ -51,14 +51,14 @@ class XMLRPCSerializerTests: XCTestCase {
     }
     
     func testDataRequest() throws {
-        let obj = try XMLRPCSerialization.string(
+        let obj = try XMLRPCSerialization.data(
         	withXmlrpcRequest: XMLRPCRequest(methodName: "test.method", params: [
                 1,
                 "a",
                 false
             ]),
             options: [])
-        let rawXML = "<methodCall><methodName>test.method</methodName><params><param><value><i4>1</i4></value></param><param><value><string>a</string></value></param><param><value><boolean>0</boolean></value></param></params></methodCall>"
+        let rawXML = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<methodCall><methodName>test.method</methodName><params><param><value><i4>1</i4></value></param><param><value><string>a</string></value></param><param><value><boolean>0</boolean></value></param></params></methodCall>".data(using: .utf8)!
         
         XCTAssertEqual(obj, rawXML, "returned the right data")
     }
@@ -70,10 +70,10 @@ class XMLRPCSerializerTests: XCTestCase {
                 ("_success", 1)
             ]
             let array: [Any] = [nested]
-            let obj = try XMLRPCSerialization.string(
+            let obj = try XMLRPCSerialization.data(
                 withXmlrpcResponse: XMLRPCResponse.response(array),
                 options: [])
-            let rawXML = "<methodResponse><params><param><value><struct><member><name>_messages</name><value><array><data><value><string>test.success</string></value></data></array></value></member><member><name>_success</name><value><i4>1</i4></value></member></struct></value></param></params></methodResponse>"
+            let rawXML = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<methodResponse><params><param><value><struct><member><name>_messages</name><value><array><data><value><string>test.success</string></value></data></array></value></member><member><name>_success</name><value><i4>1</i4></value></member></struct></value></param></params></methodResponse>".data(using: .utf8)!
 
             XCTAssertEqual(obj, rawXML, "returned the right data")
         } catch {
@@ -84,10 +84,10 @@ class XMLRPCSerializerTests: XCTestCase {
 
     func testDataResponseFault() throws {
         do {
-            let obj = try XMLRPCSerialization.string(
+            let obj = try XMLRPCSerialization.data(
                 withXmlrpcResponse: XMLRPCResponse.fault(code: 1, string: "fault"),
                 options: [])
-            let rawXML = "<methodResponse><fault><value><struct><member><name>faultCode</name><value><i4>1</i4></value></member><member><name>faultString</name><value><string>fault</string></value></member></struct></value></fault></methodResponse>"
+            let rawXML = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<methodResponse><fault><value><struct><member><name>faultCode</name><value><i4>1</i4></value></member><member><name>faultString</name><value><string>fault</string></value></member></struct></value></fault></methodResponse>".data(using: .utf8)!
 
             XCTAssertEqual(obj, rawXML, "returned the right data")
         } catch {

@@ -22,6 +22,8 @@ public enum XMLRPCResponse {
     case response([Any])
 }
 
+private let xmlDecl = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+
 open class XMLRPCSerialization {
     
     public struct ReadingOptions: OptionSet {
@@ -147,9 +149,7 @@ open class XMLRPCSerialization {
     }
     
     /// Generate a serialized XML string from an XMLRPCRequest object.
-    /// Does not generate `Data` because there's no good way to convert a
-    /// `String.Encoding` to its equivalent display name in an XML declaration.
-    open class func string(withXmlrpcRequest obj: XMLRPCRequest, options opt: WritingOptions = []) throws -> String {
+    open class func data(withXmlrpcRequest obj: XMLRPCRequest, options opt: WritingOptions = []) throws -> Data {
         let nameElement = XMLElement(name: "methodName", content: obj.methodName)
         let paramsElement = XMLElement(name: "params")
         let rootElement = XMLElement(name: "methodCall", wrapping: [nameElement, paramsElement])
@@ -163,13 +163,18 @@ open class XMLRPCSerialization {
         if opt.contains(.prettyPrint) {
             options.update(with: .nodePrettyPrint)
         }
-        return rootElement.xmlString(options: options)
+        
+        let xmlStr = rootElement.xmlString(options: options)
+        guard let xmlData = (xmlDecl + xmlStr).data(using: .utf8) else {
+            throw SerializationError.encodingError
+        }
+        return xmlData
     }
 
     /// Generate a serialized XML string from an XMLRPCResponse object.
     /// Does not generate `Data` because there's no good way to convert a
     /// `String.Encoding` to its equivalent display name in an XML declaration.
-    open class func string(withXmlrpcResponse obj: XMLRPCResponse, options opt: WritingOptions = []) throws -> String {
+    open class func data(withXmlrpcResponse obj: XMLRPCResponse, options opt: WritingOptions = []) throws -> Data {
         let rootElement = XMLElement(name: "methodResponse")
         let encoder = XMLRPCParamEncoder()
         
@@ -193,6 +198,11 @@ open class XMLRPCSerialization {
         if opt.contains(.prettyPrint) {
             options.update(with: .nodePrettyPrint)
         }
-        return rootElement.xmlString(options: options)
+        
+        let xmlStr = rootElement.xmlString(options: options)
+        guard let xmlData = (xmlDecl + xmlStr).data(using: .utf8) else {
+            throw SerializationError.encodingError
+        }
+        return xmlData
     }
 }
