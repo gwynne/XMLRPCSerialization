@@ -4,4 +4,5 @@ import XCTest
 XCTMain([
     testCase(XMLRPCSerializerTests.allTests),
     testCase(XMLRPCParamCoderTests.allTests),
+    testCase(XMLRPCEncoderTests.allTests),
 ])
