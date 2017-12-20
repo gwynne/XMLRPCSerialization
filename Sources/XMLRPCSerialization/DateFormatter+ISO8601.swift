@@ -7,14 +7,4 @@
 
 import Foundation
 
-extension DateFormatter {
-    public static var iso8601DateFormatter: DateFormatter {
-        let f = DateFormatter()
-        f.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZZZZZ"
-        f.locale = Locale(identifier: "en_US_POSIX")
-        f.timeZone = TimeZone(secondsFromGMT: 0)!
-        return f
-    }
-}
-
-internal var sharedIso8601Formatter = DateFormatter.iso8601DateFormatter
+internal var sharedIso8601Formatter = ISO8601DateFormatter()
