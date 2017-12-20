@@ -25,8 +25,8 @@ public typealias XMLRPCRequestCodable = XMLRPCRequestEncodable & XMLRPCRequestDe
 public typealias XMLRPCResponseCodable = XMLRPCResponseEncodable & XMLRPCResponseDecodable
 
 public struct XMLRPCFault: Error {
-    let faultCode: Int32
-    let faultString: String
+    public let faultCode: Int32
+    public let faultString: String
 }
 
 // - MARK: Internals
