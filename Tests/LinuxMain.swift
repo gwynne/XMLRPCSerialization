@@ -5,4 +5,5 @@ XCTMain([
     testCase(XMLRPCSerializerTests.allTests),
     testCase(XMLRPCParamCoderTests.allTests),
     testCase(XMLRPCEncoderTests.allTests),
+    testCase(XMLRPCDecoderTests.allTests),
 ])

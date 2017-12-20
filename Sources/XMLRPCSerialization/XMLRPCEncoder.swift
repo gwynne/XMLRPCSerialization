@@ -111,13 +111,6 @@ final class _XMLRPCEncoder: Encoder {
         self.storage = storage
     }
     
-    fileprivate func with<T>(pushedKey key: CodingKey, _ work: () throws -> T) rethrows -> T {
-        self.codingPath.append(key)
-        let ret = try work()
-        self.codingPath.removeLast()
-        return ret
-    }
-
     public var userInfo: [CodingUserInfoKey : Any]
     public var codingPath: [CodingKey]
     

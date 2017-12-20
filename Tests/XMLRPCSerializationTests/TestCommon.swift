@@ -1,6 +1,85 @@
 import XCTest
 @testable import XMLRPCSerialization
 
+struct SimpleTest: Codable, XMLRPCResponseCodable {
+    let a: String
+    let b: String
+    let c: [String: String]
+    
+    init() {
+        self.a = "a"
+        self.b = "b"
+        self.c = ["c": "d"]
+    }
+    
+    init(from decoder: Decoder) throws {
+        var container = try decoder.unkeyedContainer()
+        self.a = try container.decode(String.self)
+        self.b = try container.decode(String.self)
+        self.c = try container.decode(Dictionary<String, String>.self)
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.unkeyedContainer()
+        try container.encode(a)
+        try container.encode(b)
+        try container.encode(c)
+    }
+}
+
+struct WrappingTest: Codable, XMLRPCResponseCodable {
+    let a: String
+    let b: String
+    let c: [String: String]
+    
+    init() {
+        self.a = "a"
+        self.b = "b"
+        self.c = ["c": "d"]
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: WrappingTest.CodingKeys.self)
+
+        try container.encode(a, forKey: .a)
+        try container.encode(b, forKey: .b)
+        try container.encode(c, forKey: .c)
+    }
+}
+
+enum TestError: Error {
+    case badMethodName
+}
+
+struct WrappingTestRequest: Codable, XMLRPCRequestCodable {
+    init(forMethodName methodName: String, from decoder: Decoder) throws {
+        guard methodName == WrappingTestRequest.xmlrpcMethodName else {
+            throw TestError.badMethodName
+        }
+        try self.init(from: decoder)
+    }
+    
+    static var xmlrpcMethodName = "test.method"
+    
+    let a: String
+    let b: String
+    let c: [String: String]
+    
+    init() {
+        self.a = "a"
+        self.b = "b"
+        self.c = ["c": "d"]
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: WrappingTestRequest.CodingKeys.self)
+
+        try container.encode(a, forKey: .a)
+        try container.encode(b, forKey: .b)
+        try container.encode(c, forKey: .c)
+    }
+}
+
 struct XMLRPCTest: Codable {
     struct integersTest: Codable {
         let tiny_s: Int8

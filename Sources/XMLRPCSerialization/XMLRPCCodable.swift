@@ -12,20 +12,19 @@ public protocol XMLRPCRequestEncodable: Encodable {
 }
 
 public protocol XMLRPCRequestDecodable: Decodable {
-    init(forMethodName: String, from decoder: Decoder) throws
+    init(forMethodName methodName: String, from decoder: Decoder) throws
 }
 
 public protocol XMLRPCResponseEncodable: Encodable {
 }
 
 public protocol XMLRPCResponseDecodable: Decodable {
-    init(faultCode: Int32, faultString: String) throws
 }
 
 public typealias XMLRPCRequestCodable = XMLRPCRequestEncodable & XMLRPCRequestDecodable
 public typealias XMLRPCResponseCodable = XMLRPCResponseEncodable & XMLRPCResponseDecodable
 
-public struct XMLRPCFault {
+public struct XMLRPCFault: Error {
     let faultCode: Int32
     let faultString: String
 }
