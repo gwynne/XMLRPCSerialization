@@ -7,19 +7,6 @@
 
 import Foundation
 
-public protocol XMLRPCRequestEncodable: Encodable {
-    func xmlrpcMethodName() -> String
-}
-
-public protocol XMLRPCResponseEncodable: Encodable {
-    
-}
-
-public struct XMLRPCFault {
-    let faultCode: Int32
-    let faultString: String
-}
-
 open class XMLRPCEncoder {
     
     open var userInfo: [CodingUserInfoKey: Any] = [:]
@@ -30,7 +17,7 @@ open class XMLRPCEncoder {
         let encoder = _XMLRPCEncoder(userInfo: userInfo, autoWrap: autoWrappingStructures)
         
         try value.encode(to: encoder)
-        return try XMLRPCSerialization.data(withXmlrpcRequest: XMLRPCRequest(methodName: value.xmlrpcMethodName(), params: encoder.storage.storage as! [Any]))
+        return try XMLRPCSerialization.data(withXmlrpcRequest: XMLRPCRequest(methodName: T.xmlrpcMethodName, params: encoder.storage.storage as! [Any]))
     }
     
     open func encode<T: XMLRPCResponseEncodable>(_ value: T, autoWrappingStructures: Bool = true) throws -> Data {
@@ -42,19 +29,6 @@ open class XMLRPCEncoder {
     
     open func encode(_ value: XMLRPCFault) throws -> Data {
         return try XMLRPCSerialization.data(withXmlrpcResponse: XMLRPCResponse.fault(code: value.faultCode, string: value.faultString))
-    }
-}
-
-struct _XMLRPCCodingKey: CodingKey {
-    let stringValue: String
-    let intValue: Int?
-    init?(intValue: Int) {
-        self.stringValue = String(intValue)
-        self.intValue = intValue
-    }
-    init?(stringValue: String) {
-        self.stringValue = stringValue
-        self.intValue = nil
     }
 }
 

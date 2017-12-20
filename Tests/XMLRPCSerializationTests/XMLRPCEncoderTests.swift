@@ -48,9 +48,7 @@ struct WrappingTest: Codable, XMLRPCResponseEncodable {
 }
 
 struct WrappingTestRequest: Codable, XMLRPCRequestEncodable {
-    func xmlrpcMethodName() -> String {
-        return "test.method"
-    }
+    static var xmlrpcMethodName = "test.method"
     
     let a: String
     let b: String
