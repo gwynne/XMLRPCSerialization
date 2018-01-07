@@ -4,9 +4,17 @@ import XCTest
 class XMLRPCDecoderTests: XCTestCase {
     
     func testSimpleDecode() throws {
-        let rawXML = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<methodResponse><params><param><value><string>a</string></value></param><param><value><i4>5</i4></value></param><param><value><struct><member><name>c</name><value><string>d</string></value></member></struct></value></param></params></methodResponse>".data(using: .utf8)!
+        let rawXML = xmlHeader + """
+            <methodResponse><params>
+                <param><value><string>a</string></value></param>
+                <param><value><i4>5</i4></value></param>
+                <param><value><struct>
+                    <member><name>c</name><value><string>d</string></value></member>
+                </struct></value></param>
+            </params></methodResponse>
+            """
         let decoder = XMLRPCDecoder()
-        let obj = try decoder.decode(SimpleTest.self, from: rawXML, autoUnwrappingStructures: false)
+        let obj = try decoder.decode(SimpleTest.self, from: rawXML.xmlData, autoUnwrappingStructures: false)
 
         XCTAssertEqual(obj.a, "a")
         XCTAssertEqual(obj.b, 5)
@@ -14,9 +22,19 @@ class XMLRPCDecoderTests: XCTestCase {
     }
     
     func testWrappingDecode() throws {
-        let rawXML = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<methodResponse><params><param><value><struct><member><name>a</name><value><string>a</string></value></member><member><name>b</name><value><string>b</string></value></member><member><name>c</name><value><struct><member><name>c</name><value><string>d</string></value></member></struct></value></member></struct></value></param></params></methodResponse>".data(using: .utf8)!
+        let rawXML = xmlHeader + """
+            <methodResponse><params>
+                <param><value><struct>
+                    <member><name>a</name><value><string>a</string></value></member>
+                    <member><name>b</name><value><string>b</string></value></member>
+                    <member><name>c</name><value><struct>
+                        <member><name>c</name><value><string>d</string></value></member>
+                    </struct></value></member>
+                </struct></value></param>
+            </params></methodResponse>
+            """
         let decoder = XMLRPCDecoder()
-        let obj = try decoder.decode(WrappingTest.self, from: rawXML, autoUnwrappingStructures: true)
+        let obj = try decoder.decode(WrappingTest.self, from: rawXML.xmlData, autoUnwrappingStructures: true)
         
         XCTAssertEqual(obj.a, "a")
         XCTAssertEqual(obj.b, "b")
@@ -24,9 +42,19 @@ class XMLRPCDecoderTests: XCTestCase {
     }
     
     func testMethodCallDecode() throws {
-        let rawXML = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<methodCall><methodName>test.method</methodName><params><param><value><struct><member><name>a</name><value><string>a</string></value></member><member><name>b</name><value><string>b</string></value></member><member><name>c</name><value><struct><member><name>c</name><value><string>d</string></value></member></struct></value></member></struct></value></param></params></methodCall>".data(using: .utf8)!
+        let rawXML = xmlHeader + """
+            <methodCall><methodName>test.method</methodName><params>
+                <param><value><struct>
+                    <member><name>a</name><value><string>a</string></value></member>
+                    <member><name>b</name><value><string>b</string></value></member>
+                    <member><name>c</name><value><struct>
+                        <member><name>c</name><value><string>d</string></value></member>
+                    </struct></value></member>
+                </struct></value></param>
+            </params></methodCall>
+            """
         let decoder = XMLRPCDecoder()
-        let obj = try decoder.decode(WrappingTestRequest.self, from: rawXML, autoUnwrappingStructures: true)
+        let obj = try decoder.decode(WrappingTestRequest.self, from: rawXML.xmlData, autoUnwrappingStructures: true)
 
         XCTAssertEqual(obj.a, "a")
         XCTAssertEqual(obj.b, "b")
@@ -55,8 +83,8 @@ class XMLRPCDecoderTests: XCTestCase {
             </struct></value></param></params></methodResponse>
             """
         let decoder = XMLRPCDecoder()
-        let intObj = try decoder.decode(IntTypesTest.self, from: rawIntXML.data(using: .utf8)!), intDesired = IntTypesTest.filled()
-        let fpObj = try decoder.decode(FPTypesTest.self, from: rawFPXML.data(using: .utf8)!), fpDesired = FPTypesTest.filled()
+        let intObj = try decoder.decode(IntTypesTest.self, from: rawIntXML.xmlData), intDesired = IntTypesTest.filled()
+        let fpObj = try decoder.decode(FPTypesTest.self, from: rawFPXML.xmlData), fpDesired = FPTypesTest.filled()
         
         XCTAssertEqual(intObj.tiny_s, intDesired.tiny_s)
         XCTAssertEqual(intObj.tiny_u, intDesired.tiny_u)
@@ -82,7 +110,7 @@ class XMLRPCDecoderTests: XCTestCase {
                 <member><name>huge_u</name><value><i4>18446744073709551615</i4></value></member>
             </struct></value></param></params></methodResponse>
             """
-        XCTAssertThrowsError(_ = try decoder.decode(IntTypesTest.self, from: rawFailXML.data(using: .utf8)!)) {
+        XCTAssertThrowsError(_ = try decoder.decode(IntTypesTest.self, from: rawFailXML.xmlData)) {
             guard let error = $0 as? Swift.DecodingError else {
 	            XCTFail("expected decoding error, got \($0)")
                 return

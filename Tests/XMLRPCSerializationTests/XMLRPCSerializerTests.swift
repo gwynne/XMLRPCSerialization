@@ -4,9 +4,15 @@ import XCTest
 class XMLRPCSerializerTests: XCTestCase {
     
     func testXmlrpcRequest() throws {
-        let rawXML = "<methodCall><methodName>test.method</methodName><params><param><value><int>1</int></value></param><param><value><string>a</string></value></param><param><value><boolean>0</boolean></value></param></params></methodCall>"
+        let rawXML = xmlHeader + """
+            <methodCall><methodName>test.method</methodName><params>
+                <param><value><int>1</int></value></param>
+                <param><value><string>a</string></value></param>
+                <param><value><boolean>0</boolean></value></param>
+            </params></methodCall>
+            """
         
-        let obj = try XMLRPCSerialization.xmlrpcRequest(from: rawXML.data(using: .utf8)!, options: [])
+        let obj = try XMLRPCSerialization.xmlrpcRequest(from: rawXML.xmlData, options: [])
         
         XCTAssertEqual(obj.methodName, "test.method")
         XCTAssertEqual(obj.params.count, 3)
@@ -16,9 +22,18 @@ class XMLRPCSerializerTests: XCTestCase {
     }
 
     func testXmlrpcResponseNormal() throws {
-        let rawXML = "<methodResponse><params><param><value><struct><member><name>_messages</name><value><array><data><value><string>test.success</string></value></data></array></value></member><member><name>_success</name><value><i4>1</i4></value></member></struct></value></param></params></methodResponse>"
+        let rawXML = xmlHeader + """
+            <methodResponse><params>
+                <param><value><struct>
+                    <member><name>_messages</name><value><array><data>
+                        <value><string>test.success</string></value>
+                    </data></array></value></member>
+                    <member><name>_success</name><value><i4>1</i4></value></member>
+                </struct></value></param>
+            </params></methodResponse>
+            """
         
-        let obj = try XMLRPCSerialization.xmlrpcResponse(from: rawXML.data(using: .utf8)!, options: [])
+        let obj = try XMLRPCSerialization.xmlrpcResponse(from: rawXML.xmlData, options: [])
         
         switch obj {
             case .response(let params):
@@ -37,9 +52,14 @@ class XMLRPCSerializerTests: XCTestCase {
     }
     
     func testXmlrpcResponseFault() throws {
-        let rawXML = "<methodResponse><fault><value><struct><member><name>faultCode</name><value><i4>1</i4></value></member><member><name>faultString</name><value><string>fault</string></value></member></struct></value></fault></methodResponse>"
+        let rawXML = xmlHeader + """
+            <methodResponse><fault><value><struct>
+                <member><name>faultCode</name><value><i4>1</i4></value></member>
+                <member><name>faultString</name><value><string>fault</string></value></member>
+            </struct></value></fault></methodResponse>
+            """
         
-        let obj = try XMLRPCSerialization.xmlrpcResponse(from: rawXML.data(using: .utf8)!, options: [])
+        let obj = try XMLRPCSerialization.xmlrpcResponse(from: rawXML.xmlData, options: [])
         
         switch obj {
             case .fault(let code, let string):
@@ -58,9 +78,9 @@ class XMLRPCSerializerTests: XCTestCase {
                 false
             ]),
             options: [])
-        let rawXML = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<methodCall><methodName>test.method</methodName><params><param><value><i4>1</i4></value></param><param><value><string>a</string></value></param><param><value><boolean>0</boolean></value></param></params></methodCall>".data(using: .utf8)!
+        let rawXML = xmlHeader + "<methodCall><methodName>test.method</methodName><params><param><value><i4>1</i4></value></param><param><value><string>a</string></value></param><param><value><boolean>0</boolean></value></param></params></methodCall>"
         
-        XCTAssertEqual(obj, rawXML, "returned the right data")
+        XCTAssertEqual(obj.xmlString, rawXML, "returned the right data")
     }
 
     func testDataResponseNormal() throws {
@@ -73,9 +93,9 @@ class XMLRPCSerializerTests: XCTestCase {
             let obj = try XMLRPCSerialization.data(
                 withXmlrpcResponse: XMLRPCResponse.response(array),
                 options: [])
-            let rawXML = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<methodResponse><params><param><value><struct><member><name>_messages</name><value><array><data><value><string>test.success</string></value></data></array></value></member><member><name>_success</name><value><i4>1</i4></value></member></struct></value></param></params></methodResponse>".data(using: .utf8)!
+            let rawXML = xmlHeader + "<methodResponse><params><param><value><struct><member><name>_messages</name><value><array><data><value><string>test.success</string></value></data></array></value></member><member><name>_success</name><value><i4>1</i4></value></member></struct></value></param></params></methodResponse>"
 
-            XCTAssertEqual(obj, rawXML, "returned the right data")
+            XCTAssertEqual(obj.xmlString, rawXML, "returned the right data")
         } catch {
             print(error)
             throw error
@@ -87,9 +107,9 @@ class XMLRPCSerializerTests: XCTestCase {
             let obj = try XMLRPCSerialization.data(
                 withXmlrpcResponse: XMLRPCResponse.fault(code: 1, string: "fault"),
                 options: [])
-            let rawXML = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<methodResponse><fault><value><struct><member><name>faultCode</name><value><i4>1</i4></value></member><member><name>faultString</name><value><string>fault</string></value></member></struct></value></fault></methodResponse>".data(using: .utf8)!
+            let rawXML = xmlHeader + "<methodResponse><fault><value><struct><member><name>faultCode</name><value><i4>1</i4></value></member><member><name>faultString</name><value><string>fault</string></value></member></struct></value></fault></methodResponse>"
 
-            XCTAssertEqual(obj, rawXML, "returned the right data")
+            XCTAssertEqual(obj.xmlString, rawXML, "returned the right data")
         } catch {
             print(error)
             throw error

@@ -67,14 +67,14 @@ class XMLRPCParamCoderTests: XCTestCase {
                 ("large", Double.greatestFiniteMagnitude.significand),
             ]),
             ("other", [
-                ("data", "asdfasdfasdfasdf".data(using: .utf8)!),
+                ("data", "asdfasdfasdfasdf".xmlData),
                 ("date", sharedIso8601Formatter.date(from: "0001-12-29T18:09:24-05:50:36")!),
                 ("boolean", false),
                 ("textual", "I am quite a bit of complicated text ❗️"),
             ]),
             ("nesting", [
                 ("array", ["1", "a", "true"]),
-                ("data", "I am quite a bit of complicated text ❗️".data(using: .utf8)!),
+                ("data", "I am quite a bit of complicated text ❗️".xmlData),
                 ("textual", "I am quite a bit of complicated text ❗️"),
                 ("deep", [
                     ("deepArray", [0, 5, Int.max]),
@@ -129,4 +129,3 @@ class XMLRPCParamCoderTests: XCTestCase {
         ("testAllTestsIsComplete", testAllTestsIsComplete),
     ]
 }
-
