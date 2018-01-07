@@ -156,6 +156,36 @@ class XMLRPCDecoderTests: XCTestCase {
             
         }
     }
+    
+    func testDecodeIfPresent() throws {
+        let rawXML1 = xmlHeader + """
+            <methodResponse><params>
+                <param><value><struct>
+                    <member><name>opt1</name><value><i4>5</i4></value></member>
+                </struct></value></param>
+            </params></methodResponse>
+            """
+        let rawXML2 = xmlHeader + """
+            <methodResponse><params>
+                <param><value><struct>
+                    <member><name>opt1</name><value><i4>5</i4></value></member>
+                    <member><name>opt2</name><value><i4>1</i4></value></member>
+                </struct></value></param>
+            </params></methodResponse>
+            """
+        let decoder = XMLRPCDecoder()
+        let obj1 = try decoder.decode(NilTest.self, from: rawXML1.xmlData)
+        let obj2 = try decoder.decode(NilTest.self, from: rawXML2.xmlData)
+        
+        XCTAssertNotNil(obj1.opt1)
+        XCTAssertEqual(obj1.opt1, 5)
+        XCTAssertNil(obj1.opt2)
+        
+        XCTAssertNotNil(obj2.opt1)
+        XCTAssertEqual(obj2.opt1, 5)
+        XCTAssertNotNil(obj2.opt2)
+        XCTAssertEqual(obj2.opt2, 1)
+    }
 
     func testAllTestsIsComplete() {
         #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
@@ -171,6 +201,7 @@ class XMLRPCDecoderTests: XCTestCase {
         ("testMethodCallDecode", testMethodCallDecode),
         ("testTypesDecode", testTypesDecode),
         ("testDecodeIntAsUInt", testDecodeIntAsUInt),
+        ("testDecodeIfPresent", testDecodeIfPresent),
         ("testAllTestsIsComplete", testAllTestsIsComplete),
     ]
 }

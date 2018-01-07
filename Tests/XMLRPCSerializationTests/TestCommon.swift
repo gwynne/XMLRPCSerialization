@@ -149,6 +149,30 @@ struct XMLRPCTest: Codable {
     let nesting: nestingTest
 }
 
+struct NilTest: XMLRPCResponseCodable {
+    let opt1: Int?
+    let opt2: Int?
+    
+    private enum CodingKeys: String, CodingKey { case opt1, opt2 }
+    
+    init() {
+        opt1 = 5
+        opt2 = nil
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: NilTest.CodingKeys.self)
+        self.opt1 = try container.decodeIfPresent(Int.self, forKey: NilTest.CodingKeys.opt1)
+        self.opt2 = try container.decodeIfPresent(Int.self, forKey: NilTest.CodingKeys.opt2)
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: NilTest.CodingKeys.self)
+        try container.encodeIfPresent(opt1, forKey: NilTest.CodingKeys.opt1)
+        try container.encodeIfPresent(opt2, forKey: NilTest.CodingKeys.opt2)
+    }
+}
+
 func XCTAssertKey<T>(
     _ key: String,
     existsIn obj: [String: Any]?,
@@ -218,6 +242,6 @@ extension Data {
     var xmlString: String { return String(data: self, encoding: .utf8)! }
 }
 
-
 extension Int: XMLRPCResponseCodable {}
 extension UInt: XMLRPCResponseCodable {}
+

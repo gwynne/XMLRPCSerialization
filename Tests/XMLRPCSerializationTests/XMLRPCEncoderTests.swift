@@ -48,6 +48,15 @@ class XMLRPCEncoderTests: XCTestCase {
         
         XCTAssertNotNil(possibleOutputs.index { $0.xmlData == data }, "One of the inputs should match")
     }
+    
+    func testEncodeIfPresent() throws {
+        let encoder = XMLRPCEncoder()
+        let obj = NilTest()
+        let data = try encoder.encode(obj, autoWrappingStructures: true)
+        let expected = xmlHeader + "<methodResponse><params><param><value><struct><member><name>opt1</name><value><i4>5</i4></value></member></struct></value></param></params></methodResponse>"
+        
+        XCTAssertEqual(data.xmlString, expected)
+    }
 
     func testAllTestsIsComplete() {
         #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
@@ -61,6 +70,7 @@ class XMLRPCEncoderTests: XCTestCase {
         ("testSimpleEncode", testSimpleEncode),
         ("testWrappingEncode", testWrappingEncode),
         ("testMethodCallEncode", testMethodCallEncode),
+        ("testEncodeIfPresent", testEncodeIfPresent),
         ("testAllTestsIsComplete", testAllTestsIsComplete),
     ]
 }

@@ -163,10 +163,25 @@ final class _XMLRPCKeyedEncodingContainer<K: CodingKey>: KeyedEncodingContainerP
         throw EncodingError.invalidValue(NSNull(), .init(codingPath: codingPath, debugDescription: "XML-RPC does not support nil"))
     }
     
-    func encode<T>(_ value: T, forKey key: K) throws where T : Encodable {
+    func encode<T>(_ value: T, forKey key: K) throws where T: Encodable {
         let subencoder = _XMLRPCEncoder(userInfo: encoder.userInfo, codingPath: codingPath + [key], autoWrap: encoder.autoWrap, storage: encoder.storage)
         try value.encode(to: subencoder)
     }
+    
+    func encodeIfPresent(_ value: Int8?, forKey key: K) throws { if let value = value { try encode(value, forKey: key) } }
+    func encodeIfPresent(_ value: Int16?, forKey key: K) throws { if let value = value { try encode(value, forKey: key) } }
+    func encodeIfPresent(_ value: Int32?, forKey key: K) throws { if let value = value { try encode(value, forKey: key) } }
+    func encodeIfPresent(_ value: Int64?, forKey key: K) throws { if let value = value { try encode(value, forKey: key) } }
+    func encodeIfPresent(_ value: UInt?, forKey key: K) throws { if let value = value { try encode(value, forKey: key) } }
+    func encodeIfPresent(_ value: UInt8?, forKey key: K) throws { if let value = value { try encode(value, forKey: key) } }
+    func encodeIfPresent(_ value: UInt16?, forKey key: K) throws { if let value = value { try encode(value, forKey: key) } }
+    func encodeIfPresent(_ value: UInt32?, forKey key: K) throws { if let value = value { try encode(value, forKey: key) } }
+    func encodeIfPresent(_ value: UInt64?, forKey key: K) throws { if let value = value { try encode(value, forKey: key) } }
+    func encodeIfPresent(_ value: Float?, forKey key: K) throws { if let value = value { try encode(value, forKey: key) } }
+    func encodeIfPresent(_ value: Double?, forKey key: K) throws { if let value = value { try encode(value, forKey: key) } }
+    func encodeIfPresent(_ value: Bool?, forKey key: K) throws { if let value = value { try encode(value, forKey: key) } }
+    func encodeIfPresent(_ value: String?, forKey key: K) throws { if let value = value { try encode(value, forKey: key) } }
+    func encodeIfPresent<T>(_ value: T?, forKey key: K) throws where T: Encodable { if let value = value { try encode(value, forKey: key) } }
     
     func nestedContainer<NestedKey>(keyedBy keyType: NestedKey.Type, forKey key: K) -> KeyedEncodingContainer<NestedKey> where NestedKey : CodingKey {
         try! encoder.storage.set(Dictionary<String, Any>(), atPath: codingPath + [key])
@@ -206,7 +221,7 @@ final class _XMLRPCUnkeyedEncodingContainer: UnkeyedEncodingContainer, SingleVal
         throw EncodingError.invalidValue(NSNull(), .init(codingPath: codingPath, debugDescription: "XML-RPC does not support nil"))
     }
     
-    func encode<T>(_ value: T) throws where T : Encodable {
+    func encode<T>(_ value: T) throws where T: Encodable {
         defer { self.count += 1 }
         let subencoder = _XMLRPCEncoder(userInfo: encoder.userInfo, codingPath: codingPath + [nextKey], autoWrap: encoder.autoWrap, storage: encoder.storage)
         try value.encode(to: subencoder)
@@ -258,7 +273,7 @@ final class _XMLRPCSingleValueEncodingContainer: SingleValueEncodingContainer {
     func encode(_ value: Float) throws { try encoder.storage.set(value, atPath: codingPath) }
     func encode(_ value: Double) throws { try encoder.storage.set(value, atPath: codingPath) }
     func encode(_ value: String) throws { try encoder.storage.set(value, atPath: codingPath) }
-    func encode<T>(_ value: T) throws where T : Encodable {
+    func encode<T>(_ value: T) throws where T: Encodable {
         let subencoder = _XMLRPCEncoder(userInfo: encoder.userInfo, codingPath: codingPath, autoWrap: encoder.autoWrap, storage: encoder.storage)
         try value.encode(to: subencoder)
     }

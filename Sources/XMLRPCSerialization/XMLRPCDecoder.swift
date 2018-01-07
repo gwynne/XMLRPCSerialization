@@ -243,11 +243,27 @@ final class _XMLRPCKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContainerP
         throw DecodingError.typeMismatch(NSNull.self, .init(codingPath: codingPath, debugDescription: "XML-RPC does not support nil"))
     }
     
-    func decode<T>(_ type: T.Type, forKey key: K) throws -> T where T : Decodable {
+    func decode<T>(_ type: T.Type, forKey key: K) throws -> T where T: Decodable {
         let sub = subdecoder(codingPath: codingPath + [key], storage: try decoder.storage.item(forKey: key, context: codingPath + [key]))
         
         return try T(from: sub)
     }
+    
+    func decodeIfPresent(_ type: Int.Type, forKey key: K) throws -> Int? { return self.contains(key) ? try decode(type, forKey: key) : nil }
+    func decodeIfPresent(_ type: Int8.Type, forKey key: K) throws -> Int8? { return self.contains(key) ? try decode(type, forKey: key) : nil }
+    func decodeIfPresent(_ type: Int16.Type, forKey key: K) throws -> Int16? { return self.contains(key) ? try decode(type, forKey: key) : nil }
+    func decodeIfPresent(_ type: Int32.Type, forKey key: K) throws -> Int32? { return self.contains(key) ? try decode(type, forKey: key) : nil }
+    func decodeIfPresent(_ type: Int64.Type, forKey key: K) throws -> Int64? { return self.contains(key) ? try decode(type, forKey: key) : nil }
+    func decodeIfPresent(_ type: UInt.Type, forKey key: K) throws -> UInt? { return self.contains(key) ? try decode(type, forKey: key) : nil }
+    func decodeIfPresent(_ type: UInt8.Type, forKey key: K) throws -> UInt8? { return self.contains(key) ? try decode(type, forKey: key) : nil }
+    func decodeIfPresent(_ type: UInt16.Type, forKey key: K) throws -> UInt16? { return self.contains(key) ? try decode(type, forKey: key) : nil }
+    func decodeIfPresent(_ type: UInt32.Type, forKey key: K) throws -> UInt32? { return self.contains(key) ? try decode(type, forKey: key) : nil }
+    func decodeIfPresent(_ type: UInt64.Type, forKey key: K) throws -> UInt64? { return self.contains(key) ? try decode(type, forKey: key) : nil }
+    func decodeIfPresent(_ type: Float.Type, forKey key: K) throws -> Float? { return self.contains(key) ? try decode(type, forKey: key) : nil }
+    func decodeIfPresent(_ type: Double.Type, forKey key: K) throws -> Double? { return self.contains(key) ? try decode(type, forKey: key) : nil }
+    func decodeIfPresent(_ type: Bool.Type, forKey key: K) throws -> Bool? { return self.contains(key) ? try decode(type, forKey: key) : nil }
+    func decodeIfPresent(_ type: String.Type, forKey key: K) throws -> String? { return self.contains(key) ? try decode(type, forKey: key) : nil }
+    func decodeIfPresent<T>(_ type: T.Type, forKey key: K) throws -> T? where T: Decodable { return self.contains(key) ? try decode(T.self, forKey: key) : nil }
     
     func nestedContainer<NestedKey>(keyedBy keyType: NestedKey.Type, forKey key: K) throws -> KeyedDecodingContainer<NestedKey> where NestedKey : CodingKey {
         let sub = subdecoder(codingPath: codingPath + [key], storage: try decoder.storage.object(forKey: key, context: codingPath + [key]))
@@ -304,7 +320,7 @@ final class _XMLRPCUnkeyedDecodingContainer: UnkeyedDecodingContainer, SingleVal
 //        throw DecodingError.typeMismatch(NSNull.self, .init(codingPath: codingPath, debugDescription: "XML-RPC does not support nil"))
 //    }
 
-    func decode<T>(_ type: T.Type) throws -> T where T : Decodable {
+    func decode<T>(_ type: T.Type) throws -> T where T: Decodable {
         let key = nextKey
         currentIndex += 1
         let sub = subdecoder(codingPath: codingPath + [key], storage: try decoder.storage.item(forKey: key, context: codingPath + [key]))
@@ -312,6 +328,22 @@ final class _XMLRPCUnkeyedDecodingContainer: UnkeyedDecodingContainer, SingleVal
         return try T(from: sub)
     }
     
+    func decodeIfPresent(_ type: Int.Type) throws -> Int? { return self.isAtEnd ? nil : try decode(type) }
+    func decodeIfPresent(_ type: Int8.Type) throws -> Int8? { return self.isAtEnd ? nil : try decode(type) }
+    func decodeIfPresent(_ type: Int16.Type) throws -> Int16? { return self.isAtEnd ? nil : try decode(type) }
+    func decodeIfPresent(_ type: Int32.Type) throws -> Int32? { return self.isAtEnd ? nil : try decode(type) }
+    func decodeIfPresent(_ type: Int64.Type) throws -> Int64? { return self.isAtEnd ? nil : try decode(type) }
+    func decodeIfPresent(_ type: UInt.Type) throws -> UInt? { return self.isAtEnd ? nil : try decode(type) }
+    func decodeIfPresent(_ type: UInt8.Type) throws -> UInt8? { return self.isAtEnd ? nil : try decode(type) }
+    func decodeIfPresent(_ type: UInt16.Type) throws -> UInt16? { return self.isAtEnd ? nil : try decode(type) }
+    func decodeIfPresent(_ type: UInt32.Type) throws -> UInt32? { return self.isAtEnd ? nil : try decode(type) }
+    func decodeIfPresent(_ type: UInt64.Type) throws -> UInt64? { return self.isAtEnd ? nil : try decode(type) }
+    func decodeIfPresent(_ type: Float.Type) throws -> Float? { return self.isAtEnd ? nil : try decode(type) }
+    func decodeIfPresent(_ type: Double.Type) throws -> Double? { return self.isAtEnd ? nil : try decode(type) }
+    func decodeIfPresent(_ type: Bool.Type) throws -> Bool? { return self.isAtEnd ? nil : try decode(type) }
+    func decodeIfPresent(_ type: String.Type) throws -> String? { return self.isAtEnd ? nil : try decode(type) }
+    func decodeIfPresent<T>(_ type: T.Type) throws -> T? where T: Decodable { return self.isAtEnd ? nil : try self.decode(type) }
+
     func nestedContainer<NestedKey>(keyedBy keyType: NestedKey.Type) throws -> KeyedDecodingContainer<NestedKey> where NestedKey : CodingKey {
         let key = nextKey
         currentIndex += 1
@@ -362,7 +394,7 @@ final class _XMLRPCSingleValueDecodingContainer: SingleValueDecodingContainer {
     func decode(_ type: Double.Type) throws -> Double { return try decoder.storage.assertIsType(type, context: codingPath) }
     func decode(_ type: String.Type) throws -> String { return try decoder.storage.assertIsType(type, context: codingPath) }
 
-    func decode<T>(_ type: T.Type) throws -> T where T : Decodable {
+    func decode<T>(_ type: T.Type) throws -> T where T: Decodable {
         let subdecoder = _XMLRPCDecoder(userInfo: decoder.userInfo, codingPath: codingPath, autoUnwrap: decoder.autoUnwrap, storage: decoder.storage)
         
         return try T(from: subdecoder)
