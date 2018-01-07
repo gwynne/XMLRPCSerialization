@@ -105,9 +105,18 @@ class XMLRPCParamCoderTests: XCTestCase {
 //        print(d.xmlString(options: []))
     }
 
+    func testAllTestsIsComplete() {
+        #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
+            let linuxCount = type(of: self).allTests.count
+            let darwinCount = type(of: self).defaultTestSuite.testCaseCount
+            XCTAssertEqual(linuxCount, darwinCount, "\(darwinCount - linuxCount) tests are missing from allTests")
+        #endif
+    }
+    
     static var allTests = [
         ("testDecoder", testDecoder),
         ("testEncoder", testEncoder),
+        ("testAllTestsIsComplete", testAllTestsIsComplete),
     ]
 }
 

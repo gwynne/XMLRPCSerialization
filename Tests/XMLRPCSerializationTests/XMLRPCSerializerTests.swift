@@ -96,6 +96,14 @@ class XMLRPCSerializerTests: XCTestCase {
         }
     }
 
+    func testAllTestsIsComplete() {
+        #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
+            let linuxCount = type(of: self).allTests.count
+            let darwinCount = type(of: self).defaultTestSuite.testCaseCount
+            XCTAssertEqual(linuxCount, darwinCount, "\(darwinCount - linuxCount) tests are missing from allTests")
+        #endif
+    }
+    
     static var allTests = [
         ("testXmlrpcRequest", testXmlrpcRequest),
         ("testXmlrpcResponseNormal", testXmlrpcResponseNormal),
@@ -103,5 +111,6 @@ class XMLRPCSerializerTests: XCTestCase {
         ("testDataRequest", testDataRequest),
         ("testDataResponseNormal", testDataResponseNormal),
         ("testDataResponseFault", testDataResponseFault),
+        ("testAllTestsIsComplete", testAllTestsIsComplete),
     ]
 }
