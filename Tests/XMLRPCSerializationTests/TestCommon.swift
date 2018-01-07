@@ -1,6 +1,8 @@
 import XCTest
 @testable import XMLRPCSerialization
 
+let xmlHeader = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+
 struct SimpleTest: XMLRPCResponseCodable {
     let a: String
     let b: UInt32
@@ -207,3 +209,15 @@ func XCTAssertKey<T: BinaryFloatingPoint>(
     // Don't even ask how I figured out this value. It wasn't by looking it up.
     XCTAssertEqual(typedValue, expected, accuracy: 0.000000000000000222044605, file: file, line: line)
 }
+
+extension String {
+    var xmlData: Data { return data(using: .utf8)! }
+}
+
+extension Data {
+    var xmlString: String { return String(data: self, encoding: .utf8)! }
+}
+
+
+extension Int: XMLRPCResponseCodable {}
+extension UInt: XMLRPCResponseCodable {}
