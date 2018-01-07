@@ -59,7 +59,7 @@ final class _XMLRPCDecodingStorage {
             case .array(let value):
                 return value
             default:
-                throw DecodingError.typeMismatch(Array<Any>.self, DecodingError.Context(codingPath: context, debugDescription: "Needed array"))
+                throw DecodingError.typeMismatch(Array<Any>.self, .init(codingPath: context, debugDescription: "Needed array"))
         }
     }
     
@@ -68,7 +68,7 @@ final class _XMLRPCDecodingStorage {
             case .object(let value):
                 return value
             default:
-                throw DecodingError.typeMismatch(Dictionary<String, Any>.self, DecodingError.Context(codingPath: context, debugDescription: "Needed object"))
+                throw DecodingError.typeMismatch(Dictionary<String, Any>.self, .init(codingPath: context, debugDescription: "Needed object"))
         }
     }
     
@@ -104,11 +104,11 @@ final class _XMLRPCDecodingStorage {
         switch data {
             case .value(let value):
                 guard let value = value as? T else {
-                    throw DecodingError.typeMismatch(T.self, DecodingError.Context(codingPath: context, debugDescription: "Needed \(T.self)"))
+                    throw DecodingError.typeMismatch(T.self, .init(codingPath: context, debugDescription: "Needed \(T.self)"))
                 }
                 return value
             default:
-                throw DecodingError.typeMismatch(T.self, DecodingError.Context(codingPath: context, debugDescription: "Needed \(T.self)"))
+                throw DecodingError.typeMismatch(T.self, .init(codingPath: context, debugDescription: "Needed \(T.self)"))
         }
     }
 
@@ -116,13 +116,13 @@ final class _XMLRPCDecodingStorage {
         if let index = key.intValue {
             let array = try assertIsArray(context: context)
             guard index < array.count else {
-                throw DecodingError.valueNotFound(Array<Any>.self, DecodingError.Context(codingPath: context, debugDescription: "no value at \(index)"))
+                throw DecodingError.valueNotFound(Array<Any>.self, .init(codingPath: context, debugDescription: "no value at \(index)"))
             }
             return _XMLRPCDecodingStorage(array[index])
         } else {
             let object = try assertIsObject(context: context)
             guard let value = object[key.stringValue] else {
-                throw DecodingError.valueNotFound(Array<Any>.self, DecodingError.Context(
+                throw DecodingError.valueNotFound(Array<Any>.self, .init(
                     codingPath: context,
                     debugDescription: "no value for key \(key.stringValue)"
                 ))
@@ -134,7 +134,7 @@ final class _XMLRPCDecodingStorage {
     func array(forKey key: CodingKey, context: [CodingKey]) throws -> _XMLRPCDecodingStorage {
         let value = try item(forKey: key, context: context)
         guard value.isArray else {
-            throw DecodingError.typeMismatch(Array<Any>.self, DecodingError.Context(codingPath: context, debugDescription: "Needed array for key"))
+            throw DecodingError.typeMismatch(Array<Any>.self, .init(codingPath: context, debugDescription: "Needed array for key"))
         }
         return value
     }
@@ -142,7 +142,7 @@ final class _XMLRPCDecodingStorage {
     func object(forKey key: CodingKey, context: [CodingKey]) throws -> _XMLRPCDecodingStorage {
         let value = try item(forKey: key, context: context)
         guard value.isObject else {
-            throw DecodingError.typeMismatch(Dictionary<String, Any>.self, DecodingError.Context(codingPath: context, debugDescription: "Needed object for key"))
+            throw DecodingError.typeMismatch(Dictionary<String, Any>.self, .init(codingPath: context, debugDescription: "Needed object for key"))
         }
         return value
     }
@@ -165,7 +165,7 @@ final class _XMLRPCDecoder: Decoder {
 
     func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> where Key : CodingKey {
         guard codingPath.count > 0 || autoUnwrap else {
-            throw DecodingError.typeMismatch(Dictionary<String, Any>.self, DecodingError.Context(
+            throw DecodingError.typeMismatch(Dictionary<String, Any>.self, .init(
                 codingPath: codingPath,
                 debugDescription: "can't decode a dictionary at XML-RPC top level"
             ))
@@ -176,7 +176,7 @@ final class _XMLRPCDecoder: Decoder {
             return try outerContainer.nestedContainer(keyedBy: Key.self)
         } else {
             guard storage.isObject else {
-                throw DecodingError.typeMismatch(Dictionary<String, Any>.self, DecodingError.Context(
+                throw DecodingError.typeMismatch(Dictionary<String, Any>.self, .init(
                     codingPath: codingPath,
                     debugDescription: "requesting object where there isn't one"
                 ))
@@ -187,7 +187,7 @@ final class _XMLRPCDecoder: Decoder {
     
     func unkeyedContainer() throws -> UnkeyedDecodingContainer {
         guard storage.isArray else {
-            throw DecodingError.typeMismatch(Array<Any>.self, DecodingError.Context(
+            throw DecodingError.typeMismatch(Array<Any>.self, .init(
                 codingPath: codingPath,
                 debugDescription: "requesting array where there isn't one"
             ))
@@ -197,7 +197,7 @@ final class _XMLRPCDecoder: Decoder {
     
     func singleValueContainer() throws -> SingleValueDecodingContainer {
         guard codingPath.count > 0 || autoUnwrap else {
-            throw DecodingError.typeMismatch(Any.self, DecodingError.Context(
+            throw DecodingError.typeMismatch(Any.self, .init(
                 codingPath: codingPath,
                 debugDescription: "can't decode a singular value at XML-RPC top level"
             ))
@@ -240,7 +240,7 @@ final class _XMLRPCKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContainerP
     }
 
     func decodeNil(forKey key: K) throws -> Bool {
-        throw DecodingError.typeMismatch(NSNull.self, DecodingError.Context(codingPath: codingPath, debugDescription: "XML-RPC does not support nil"))
+        throw DecodingError.typeMismatch(NSNull.self, .init(codingPath: codingPath, debugDescription: "XML-RPC does not support nil"))
     }
     
     func decode<T>(_ type: T.Type, forKey key: K) throws -> T where T : Decodable {
@@ -301,7 +301,7 @@ final class _XMLRPCUnkeyedDecodingContainer: UnkeyedDecodingContainer, SingleVal
     }
     
 //    func decodeNil() throws -> Bool {
-//        throw DecodingError.typeMismatch(NSNull.self, DecodingError.Context(codingPath: codingPath, debugDescription: "XML-RPC does not support nil"))
+//        throw DecodingError.typeMismatch(NSNull.self, .init(codingPath: codingPath, debugDescription: "XML-RPC does not support nil"))
 //    }
 
     func decode<T>(_ type: T.Type) throws -> T where T : Decodable {

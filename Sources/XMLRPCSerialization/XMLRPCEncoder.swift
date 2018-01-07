@@ -42,7 +42,7 @@ class _XMLRPCValueEncodingStorage {
     private func _set(_ value: Any, in container: inout Any, forKey key: CodingKey) throws {
         if var arrayContainer = container as? [Any] {
             guard let index = key.intValue else {
-                throw EncodingError.invalidValue(value, EncodingError.Context(codingPath: [key], debugDescription: "Need an int key for array container"))
+                throw EncodingError.invalidValue(value, .init(codingPath: [key], debugDescription: "Need an int key for array container"))
             }
             switch index {
                 case 0..<arrayContainer.count:
@@ -50,14 +50,14 @@ class _XMLRPCValueEncodingStorage {
                 case arrayContainer.count:
                     arrayContainer.append(value)
                 default:
-                    throw EncodingError.invalidValue(value, EncodingError.Context(codingPath: [key], debugDescription: "Index key \(index) is out of bounds"))
+                    throw EncodingError.invalidValue(value, .init(codingPath: [key], debugDescription: "Index key \(index) is out of bounds"))
             }
             container = arrayContainer
         } else if var objectContainer = container as? [String: Any] {
             objectContainer[key.stringValue] = value
             container = objectContainer
         } else {
-            throw EncodingError.invalidValue(value, EncodingError.Context(codingPath: [key], debugDescription: "Can't keypath into a non-container"))
+            throw EncodingError.invalidValue(value, .init(codingPath: [key], debugDescription: "Can't keypath into a non-container"))
         }
     }
     
@@ -70,10 +70,10 @@ class _XMLRPCValueEncodingStorage {
             case 2...:
                 if var arrayContainer = container as? [Any] {
                     guard let index = path[0].intValue else {
-                        throw EncodingError.invalidValue(value, EncodingError.Context(codingPath: path, debugDescription: "Need an int key for array container"))
+                        throw EncodingError.invalidValue(value, .init(codingPath: path, debugDescription: "Need an int key for array container"))
                     }
                     guard index < arrayContainer.count else {
-                        throw EncodingError.invalidValue(value, EncodingError.Context(codingPath: path, debugDescription: "Index key \(index) is out of bounds"))
+                        throw EncodingError.invalidValue(value, .init(codingPath: path, debugDescription: "Index key \(index) is out of bounds"))
                     }
                     var contained = arrayContainer[index]
                     try _set(value, in: &contained, atPath: Array(path[1...]))
@@ -81,16 +81,16 @@ class _XMLRPCValueEncodingStorage {
                     container = arrayContainer // so much copying...
                 } else if var objectContainer = container as? [String: Any] {
                     guard var contained = objectContainer[path[0].stringValue] else {
-                        throw EncodingError.invalidValue(value, EncodingError.Context(codingPath: path, debugDescription: "String key is missing"))
+                        throw EncodingError.invalidValue(value, .init(codingPath: path, debugDescription: "String key is missing"))
                     }
                     try _set(value, in: &contained, atPath: Array(path[1...]))
                     objectContainer[path[0].stringValue] = contained
                     container = objectContainer // so much copying...
                 } else {
-                    throw EncodingError.invalidValue(value, EncodingError.Context(codingPath: path, debugDescription: "Can't keypath into a non-container"))
+                    throw EncodingError.invalidValue(value, .init(codingPath: path, debugDescription: "Can't keypath into a non-container"))
                 }
             default:
-                throw EncodingError.invalidValue(value, EncodingError.Context(codingPath: path, debugDescription: "can't set an XML-RPC value at top-level"))
+                throw EncodingError.invalidValue(value, .init(codingPath: path, debugDescription: "can't set an XML-RPC value at top-level"))
         }
     }
     
@@ -160,7 +160,7 @@ final class _XMLRPCKeyedEncodingContainer<K: CodingKey>: KeyedEncodingContainerP
     public var codingPath: [CodingKey]
 
     func encodeNil(forKey key: K) throws {
-        throw EncodingError.invalidValue(NSNull(), EncodingError.Context(codingPath: codingPath, debugDescription: "XML-RPC does not support nil"))
+        throw EncodingError.invalidValue(NSNull(), .init(codingPath: codingPath, debugDescription: "XML-RPC does not support nil"))
     }
     
     func encode<T>(_ value: T, forKey key: K) throws where T : Encodable {
@@ -203,7 +203,7 @@ final class _XMLRPCUnkeyedEncodingContainer: UnkeyedEncodingContainer, SingleVal
     public var codingPath: [CodingKey]
 
     func encodeNil() throws {
-        throw EncodingError.invalidValue(NSNull(), EncodingError.Context(codingPath: codingPath, debugDescription: "XML-RPC does not support nil"))
+        throw EncodingError.invalidValue(NSNull(), .init(codingPath: codingPath, debugDescription: "XML-RPC does not support nil"))
     }
     
     func encode<T>(_ value: T) throws where T : Encodable {
@@ -241,7 +241,7 @@ final class _XMLRPCSingleValueEncodingContainer: SingleValueEncodingContainer {
     public var codingPath: [CodingKey]
 
     func encodeNil() throws {
-        throw EncodingError.invalidValue(NSNull(), EncodingError.Context(codingPath: codingPath, debugDescription: "XML-RPC does not support nil"))
+        throw EncodingError.invalidValue(NSNull(), .init(codingPath: codingPath, debugDescription: "XML-RPC does not support nil"))
     }
     
     func encode(_ value: Bool) throws { try encoder.storage.set(value, atPath: codingPath) }
