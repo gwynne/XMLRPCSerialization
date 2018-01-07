@@ -97,6 +97,37 @@ class XMLRPCDecoderTests: XCTestCase {
             XCTAssertEqual(context.debugDescription, "Int8 can't hold -255")
         }
     }
+    
+    func testDecodeIntAsUInt() throws {
+        let rawXML = xmlHeader + """
+            <methodResponse><params><param><value><i4>1</i4></value></param></params></methodResponse>
+            """
+        let decoder = XMLRPCDecoder()
+        let value1 = try decoder.decode(Int.self, from: rawXML.xmlData)
+        
+        XCTAssertEqual(value1, 1)
+        
+        let value2 = try decoder.decode(UInt.self, from: rawXML.xmlData)
+        
+        XCTAssertEqual(value2, 1)
+        
+        let rawFailXML = xmlHeader + """
+            <methodResponse><params><param><value><i4>-1</i4></value></param></params></methodResponse>
+            """
+        
+        XCTAssertThrowsError(_ = try decoder.decode(UInt.self, from: rawFailXML.xmlData)) {
+            guard let error = $0 as? Swift.DecodingError else {
+                XCTFail("expected decoding error, got \($0)")
+                return
+            }
+            guard case .dataCorrupted(let context) = error else {
+                XCTFail("expected data corrupted error, got \($0)")
+                return
+            }
+            XCTAssertEqual(context.codingPath.count, 1)
+            
+        }
+    }
 
     func testAllTestsIsComplete() {
         #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
@@ -111,6 +142,8 @@ class XMLRPCDecoderTests: XCTestCase {
         ("testWrappingDecode", testWrappingDecode),
         ("testMethodCallDecode", testMethodCallDecode),
         ("testTypesDecode", testTypesDecode),
+        ("testDecodeIntAsUInt", testDecodeIntAsUInt),
         ("testAllTestsIsComplete", testAllTestsIsComplete),
     ]
 }
+
