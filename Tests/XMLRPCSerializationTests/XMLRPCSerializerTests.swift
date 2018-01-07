@@ -52,7 +52,7 @@ class XMLRPCSerializerTests: XCTestCase {
     
     func testDataRequest() throws {
         let obj = try XMLRPCSerialization.data(
-        	withXmlrpcRequest: XMLRPCRequest(methodName: "test.method", params: [
+            withXmlrpcRequest: XMLRPCRequest(methodName: "test.method", params: [
                 1,
                 "a",
                 false
