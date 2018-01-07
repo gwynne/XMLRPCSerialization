@@ -62,6 +62,7 @@ final class _XMLRPCDecodingStorage {
                 throw DecodingError.typeMismatch(Array<Any>.self, DecodingError.Context(codingPath: context, debugDescription: "Needed array"))
         }
     }
+    
     func assertIsObject(context: [CodingKey]) throws -> [String: Any] {
         switch data {
             case .object(let value):
@@ -70,6 +71,31 @@ final class _XMLRPCDecodingStorage {
                 throw DecodingError.typeMismatch(Dictionary<String, Any>.self, DecodingError.Context(codingPath: context, debugDescription: "Needed object"))
         }
     }
+    
+    func assertIsSignedIntType<T: SignedInteger>(_ type: T.Type, context: [CodingKey]) throws -> T {
+        let intValue = try assertIsType(Int.self, context: context)
+        guard let trueValue = T.init(exactly: intValue) else {
+            throw DecodingError.dataCorrupted(.init(codingPath: context, debugDescription: "\(T.self) can't hold \(intValue)"))
+        }
+        return trueValue
+    }
+
+    func assertIsUnsignedIntType<T: UnsignedInteger>(_ type: T.Type, context: [CodingKey]) throws -> T {
+        let intValue = try assertIsType(UInt.self, context: context)
+        guard let trueValue = T.init(exactly: intValue) else {
+            throw DecodingError.dataCorrupted(.init(codingPath: context, debugDescription: "\(T.self) can't hold \(intValue)"))
+        }
+        return trueValue
+    }
+
+    func assertIsFloatingPointType(context: [CodingKey]) throws -> Float {
+        let floatValue = try assertIsType(Double.self, context: context)
+        guard let trueValue = Float.init(exactly: floatValue) else {
+            throw DecodingError.dataCorrupted(.init(codingPath: context, debugDescription: "\(Float.self) can't hold \(floatValue)"))
+        }
+        return trueValue
+    }
+
     func assertIsType<T>(_ type: T.Type, context: [CodingKey]) throws -> T {
         switch data {
             case .value(let value):
@@ -318,17 +344,17 @@ final class _XMLRPCSingleValueDecodingContainer: SingleValueDecodingContainer {
     }
 
     func decode(_ type: Bool.Type) throws -> Bool { return try decoder.storage.assertIsType(type, context: codingPath) }
-    func decode(_ type: Int.Type) throws -> Int { return try decoder.storage.assertIsType(type, context: codingPath) }
-    func decode(_ type: Int8.Type) throws -> Int8 { return try decoder.storage.assertIsType(type, context: codingPath) }
-    func decode(_ type: Int16.Type) throws -> Int16 { return try decoder.storage.assertIsType(type, context: codingPath) }
-    func decode(_ type: Int32.Type) throws -> Int32 { return try decoder.storage.assertIsType(type, context: codingPath) }
-    func decode(_ type: Int64.Type) throws -> Int64 { return try decoder.storage.assertIsType(type, context: codingPath) }
-    func decode(_ type: UInt.Type) throws -> UInt { return try decoder.storage.assertIsType(type, context: codingPath) }
-    func decode(_ type: UInt8.Type) throws -> UInt8 { return try decoder.storage.assertIsType(type, context: codingPath) }
-    func decode(_ type: UInt16.Type) throws -> UInt16 { return try decoder.storage.assertIsType(type, context: codingPath) }
-    func decode(_ type: UInt32.Type) throws -> UInt32 { return try decoder.storage.assertIsType(type, context: codingPath) }
-    func decode(_ type: UInt64.Type) throws -> UInt64 { return try decoder.storage.assertIsType(type, context: codingPath) }
-    func decode(_ type: Float.Type) throws -> Float { return try decoder.storage.assertIsType(type, context: codingPath) }
+    func decode(_ type: Int.Type) throws -> Int { return try decoder.storage.assertIsSignedIntType(type, context: codingPath) }
+    func decode(_ type: Int8.Type) throws -> Int8 { return try decoder.storage.assertIsSignedIntType(type, context: codingPath) }
+    func decode(_ type: Int16.Type) throws -> Int16 { return try decoder.storage.assertIsSignedIntType(type, context: codingPath) }
+    func decode(_ type: Int32.Type) throws -> Int32 { return try decoder.storage.assertIsSignedIntType(type, context: codingPath) }
+    func decode(_ type: Int64.Type) throws -> Int64 { return try decoder.storage.assertIsSignedIntType(type, context: codingPath) }
+    func decode(_ type: UInt.Type) throws -> UInt { return try decoder.storage.assertIsUnsignedIntType(type, context: codingPath) }
+    func decode(_ type: UInt8.Type) throws -> UInt8 { return try decoder.storage.assertIsUnsignedIntType(type, context: codingPath) }
+    func decode(_ type: UInt16.Type) throws -> UInt16 { return try decoder.storage.assertIsUnsignedIntType(type, context: codingPath) }
+    func decode(_ type: UInt32.Type) throws -> UInt32 { return try decoder.storage.assertIsUnsignedIntType(type, context: codingPath) }
+    func decode(_ type: UInt64.Type) throws -> UInt64 { return try decoder.storage.assertIsUnsignedIntType(type, context: codingPath) }
+    func decode(_ type: Float.Type) throws -> Float { return try decoder.storage.assertIsFloatingPointType(context: codingPath) }
     func decode(_ type: Double.Type) throws -> Double { return try decoder.storage.assertIsType(type, context: codingPath) }
     func decode(_ type: String.Type) throws -> String { return try decoder.storage.assertIsType(type, context: codingPath) }
 

@@ -1,21 +1,21 @@
 import XCTest
 @testable import XMLRPCSerialization
 
-struct SimpleTest: Codable, XMLRPCResponseCodable {
+struct SimpleTest: XMLRPCResponseCodable {
     let a: String
-    let b: String
+    let b: UInt32
     let c: [String: String]
     
     init() {
         self.a = "a"
-        self.b = "b"
+        self.b = 5
         self.c = ["c": "d"]
     }
     
     init(from decoder: Decoder) throws {
         var container = try decoder.unkeyedContainer()
         self.a = try container.decode(String.self)
-        self.b = try container.decode(String.self)
+        self.b = try container.decode(UInt32.self)
         self.c = try container.decode(Dictionary<String, String>.self)
     }
     
@@ -27,7 +27,34 @@ struct SimpleTest: Codable, XMLRPCResponseCodable {
     }
 }
 
-struct WrappingTest: Codable, XMLRPCResponseCodable {
+typealias IntTypesTest = XMLRPCTest.integersTest
+extension IntTypesTest: XMLRPCResponseCodable {
+    static func filled() -> IntTypesTest {
+        return .init(
+            tiny_s: Int8.min,
+            tiny_u: UInt8.max,
+            small_s: Int16.min,
+            small_u: UInt16.max,
+            large_s: Int32.min,
+            large_u: UInt32.max,
+            huge_s: Int64.min,
+            huge_u: UInt64.max
+        )
+    }
+}
+
+typealias FPTypesTest = XMLRPCTest.decimalsTest
+extension FPTypesTest: XMLRPCResponseCodable {
+    static func filled() -> FPTypesTest {
+        // TODO: More meaningful values
+        return .init(
+            small: Float.greatestFiniteMagnitude.significand,
+            large: Double.greatestFiniteMagnitude.significand
+        )
+    }
+}
+
+struct WrappingTest: XMLRPCResponseCodable {
     let a: String
     let b: String
     let c: [String: String]
@@ -51,7 +78,7 @@ enum TestError: Error {
     case badMethodName
 }
 
-struct WrappingTestRequest: Codable, XMLRPCRequestCodable {
+struct WrappingTestRequest: XMLRPCRequestCodable {
     init(forMethodName methodName: String, from decoder: Decoder) throws {
         guard methodName == WrappingTestRequest.xmlrpcMethodName else {
             throw TestError.badMethodName

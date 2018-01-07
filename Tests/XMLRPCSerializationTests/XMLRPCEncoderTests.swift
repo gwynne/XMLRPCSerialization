@@ -8,8 +8,9 @@ class XMLRPCEncoderTests: XCTestCase {
         let obj = SimpleTest()
         
         let data = try encoder.encode(obj, autoWrappingStructures: false)
+        let readable = String(data: data, encoding: .utf8)!
         
-        XCTAssertEqual(data, "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<methodResponse><params><param><value><string>a</string></value></param><param><value><string>b</string></value></param><param><value><struct><member><name>c</name><value><string>d</string></value></member></struct></value></param></params></methodResponse>".data(using: .utf8)!)
+        XCTAssertEqual(readable, "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<methodResponse><params><param><value><string>a</string></value></param><param><value><i4>5</i4></value></param><param><value><struct><member><name>c</name><value><string>d</string></value></member></struct></value></param></params></methodResponse>")
     }
     
     func testWrappingEncode() throws {

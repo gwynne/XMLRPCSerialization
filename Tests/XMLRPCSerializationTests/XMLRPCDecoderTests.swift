@@ -4,12 +4,12 @@ import XCTest
 class XMLRPCDecoderTests: XCTestCase {
     
     func testSimpleDecode() throws {
-        let rawXML = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<methodResponse><params><param><value><string>a</string></value></param><param><value><string>b</string></value></param><param><value><struct><member><name>c</name><value><string>d</string></value></member></struct></value></param></params></methodResponse>".data(using: .utf8)!
+        let rawXML = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<methodResponse><params><param><value><string>a</string></value></param><param><value><i4>5</i4></value></param><param><value><struct><member><name>c</name><value><string>d</string></value></member></struct></value></param></params></methodResponse>".data(using: .utf8)!
         let decoder = XMLRPCDecoder()
         let obj = try decoder.decode(SimpleTest.self, from: rawXML, autoUnwrappingStructures: false)
 
         XCTAssertEqual(obj.a, "a")
-        XCTAssertEqual(obj.b, "b")
+        XCTAssertEqual(obj.b, 5)
         XCTAssertEqual(obj.c["c"], "d")
     }
     
@@ -32,10 +32,76 @@ class XMLRPCDecoderTests: XCTestCase {
         XCTAssertEqual(obj.b, "b")
         XCTAssertEqual(obj.c["c"], "d")
     }
+    
+    func testTypesDecode() throws {
+        let rawIntXML = """
+            <?xml version=\"1.0\" encoding=\"utf-8\"?>
+            <methodResponse><params><param><value><struct>
+                <member><name>tiny_s</name><value><i4>-128</i4></value></member>
+                <member><name>tiny_u</name><value><i4>255</i4></value></member>
+                <member><name>small_s</name><value><i4>-32768</i4></value></member>
+                <member><name>small_u</name><value><i4>65535</i4></value></member>
+                <member><name>large_s</name><value><i4>-2147483648</i4></value></member>
+                <member><name>large_u</name><value><i4>4294967295</i4></value></member>
+                <member><name>huge_s</name><value><i4>-9223372036854775808</i4></value></member>
+                <member><name>huge_u</name><value><i4>18446744073709551615</i4></value></member>
+            </struct></value></param></params></methodResponse>
+            """
+        let rawFPXML = """
+            <?xml version=\"1.0\" encoding=\"utf-8\"?>
+            <methodResponse><params><param><value><struct>
+                <member><name>small</name><value><double>2.0</double></value>
+                </member><member><name>large</name><value><double>2.0</double></value></member>
+            </struct></value></param></params></methodResponse>
+            """
+        let decoder = XMLRPCDecoder()
+        let intObj = try decoder.decode(IntTypesTest.self, from: rawIntXML.data(using: .utf8)!), intDesired = IntTypesTest.filled()
+        let fpObj = try decoder.decode(FPTypesTest.self, from: rawFPXML.data(using: .utf8)!), fpDesired = FPTypesTest.filled()
+        
+        XCTAssertEqual(intObj.tiny_s, intDesired.tiny_s)
+        XCTAssertEqual(intObj.tiny_u, intDesired.tiny_u)
+        XCTAssertEqual(intObj.small_s, intDesired.small_s)
+        XCTAssertEqual(intObj.small_u, intDesired.small_u)
+        XCTAssertEqual(intObj.large_s, intDesired.large_s)
+        XCTAssertEqual(intObj.large_u, intDesired.large_u)
+        XCTAssertEqual(intObj.huge_s, intDesired.huge_s)
+        XCTAssertEqual(intObj.huge_u, intDesired.huge_u)
+        XCTAssertEqual(fpObj.small, fpDesired.small, accuracy: 0.000000119209286)
+        XCTAssertEqual(fpObj.large, fpDesired.large, accuracy: 0.000000000000000222044605)
+        
+        let rawFailXML = """
+            <?xml version=\"1.0\" encoding=\"utf-8\"?>
+            <methodResponse><params><param><value><struct>
+                <member><name>tiny_s</name><value><i4>-255</i4></value></member>
+                <member><name>tiny_u</name><value><i4>255</i4></value></member>
+                <member><name>small_s</name><value><i4>-32768</i4></value></member>
+                <member><name>small_u</name><value><i4>65535</i4></value></member>
+                <member><name>large_s</name><value><i4>-2147483648</i4></value></member>
+                <member><name>large_u</name><value><i4>4294967295</i4></value></member>
+                <member><name>huge_s</name><value><i4>-9223372036854775808</i4></value></member>
+                <member><name>huge_u</name><value><i4>18446744073709551615</i4></value></member>
+            </struct></value></param></params></methodResponse>
+            """
+        XCTAssertThrowsError(_ = try decoder.decode(IntTypesTest.self, from: rawFailXML.data(using: .utf8)!)) {
+            guard let error = $0 as? Swift.DecodingError else {
+	            XCTFail("expected decoding error, got \($0)")
+                return
+            }
+            guard case .dataCorrupted(let context) = error else {
+                XCTFail("expected data corrupted error, got \($0)")
+                return
+            }
+            XCTAssertEqual(context.codingPath.count, 2)
+            XCTAssertEqual(context.codingPath[0].stringValue, _XMLRPCCodingKey(intValue: 0)?.stringValue)
+            XCTAssertEqual(context.codingPath[1].stringValue, "tiny_s")
+            XCTAssertEqual(context.debugDescription, "Int8 can't hold -255")
+        }
+    }
 
     static var allTests = [
         ("testSimpleDecode", testSimpleDecode),
         ("testWrappingDecode", testWrappingDecode),
         ("testMethodCallDecode", testMethodCallDecode),
+        ("testTypesDecode", testTypesDecode),
     ]
 }
