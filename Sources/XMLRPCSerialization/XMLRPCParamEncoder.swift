@@ -58,7 +58,7 @@ open class XMLRPCParamEncoder {
             return XMLElement(name: "dateTime.iso8601", content: sharedIso8601Formatter.string(from: value))
         } else if let value = value as? Data {
             return XMLElement(name: "base64", content: value.base64EncodedString(options: []))
-        } else if let value = value as? [(String, Any)] {
+        } else if let value = value as? [(String, Any)], value.count > 0 {
             let wrapper = XMLElement(name: "struct")
             for (key, subvalue) in value {
                 wrapper.addChild(XMLElement(name: "member", wrapping: [XMLElement(name: "name", content: key), try encodeValue(subvalue)]))

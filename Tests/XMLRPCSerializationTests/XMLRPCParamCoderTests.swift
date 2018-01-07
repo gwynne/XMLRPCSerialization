@@ -104,6 +104,15 @@ class XMLRPCParamCoderTests: XCTestCase {
         XCTAssertEqual(d.xmlString, xmlBlob)
 //        print(d.xmlString(options: []))
     }
+    
+    func testEncodeEmptyArray() throws {
+        let arr: [String] = []
+        let encoder = XMLRPCParamEncoder()
+        let element = try encoder.encode(arr)
+        let readable = element.xmlString
+        
+        XCTAssertEqual(readable, "<param><value><array><data></data></array></value></param>")
+    }
 
     func testAllTestsIsComplete() {
         #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
@@ -116,6 +125,7 @@ class XMLRPCParamCoderTests: XCTestCase {
     static var allTests = [
         ("testDecoder", testDecoder),
         ("testEncoder", testEncoder),
+        ("testEncodeEmptyArray", testEncodeEmptyArray),
         ("testAllTestsIsComplete", testAllTestsIsComplete),
     ]
 }
